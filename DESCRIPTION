@@ -1,0 +1,26 @@
+Package: quantlab
+Title: High-Speed Strategy Tester
+Version: 0.1.0
+Authors@R: c(person("Truong Giang", "Do", email = "giangh14cqt@gmail.com", role = c("aut", "cre")), person("Jan", "Melan", role = "aut"), person("Sebastian", "Chmielewski", role = "aut"))
+Author: Truong Giang Do, Jan Melan, Sebastian Chmielewski
+Maintainer: Truong Giang Do <giangh14cqt@gmail.com>
+Description: A high-speed backtesting framework for R, utilizing R6 for state 
+    management and Rcpp for performance-critical path-dependent simulations. 
+    It provides a modular structure for testing simple trading strategies on 
+    historical market data, specifically optimized for Polish market assets.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.3.3
+Imports: 
+    R6,
+    Rcpp (>= 1.0.0)
+LinkingTo: 
+    Rcpp
+Suggests: 
+    testthat (>= 3.0.0),
+    shiny,
+    bslib,
+    plotly,
+    DT
+Config/testthat/edition: 3

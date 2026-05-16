@@ -1,0 +1,8 @@
+^.*\.Rproj$
+^\.Rproj\.user$
+^IMPLEMENTATION_PLAN\.md$
+^PROPOSAL\.md$
+^TODO_NEXT\.md$
+^wig_d\.csv$
+^tests/testthat/scratch/.*$
+^\.git$
