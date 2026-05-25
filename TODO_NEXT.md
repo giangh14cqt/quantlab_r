@@ -1,19 +1,17 @@
-# TODO_NEXT - QuantLab Roadmap
+# TODO_NEXT — QuantLab Roadmap
 
-This document tracks the tasks planned for after the completion of Phases 1-4.
+## Phase 5: Analytical Shiny Dashboard — DONE ✅
+- [x] `inst/shiny_app/app.R` — DCA vs Buy-the-Dip comparison dashboard
+- [x] Sidebar controls (index selector, date range, DCA interval, dip threshold, amounts)
+- [x] Wealth-factor chart (Plotly) normalised by cumulative invested
+- [x] Strategy comparison table (DT) with best-value highlighting
+- [x] Reactive triggers connected to Rcpp backend
 
-## Phase 5: Analytical Shiny Dashboard
-- [ ] Create `inst/shiny_app/app.R`.
-- [ ] Implement Sidebar controls (Ticker, Stop-loss %, Initial Cash).
-- [ ] Implement Main Panel visualizations:
-    - [ ] Equity Curve (Plotly).
-    - [ ] Performance Metrics Summary (Sharpe, Max Drawdown, PnL).
-    - [ ] Trade Log Table (DT).
-- [ ] Add reactive triggers to run the Rcpp backtester when parameters change.
+## Phase 6: Testing & Packaging — DONE ✅
+- [x] Full `testthat` suite (`tests/testthat/test-backtester.R`)
+- [x] Documentation generated via `roxygen2` / `devtools::document()`
 
-## Phase 6: Testing & Packaging
-- [ ] Implement full `testthat` suite in `tests/testthat/`.
-- [ ] Run `devtools::check()` to ensure CRAN-like compliance.
-- [ ] Generate documentation using `roxygen2` / `devtools::document()`.
-- [ ] Finalize the `DESCRIPTION` file and package versioning.
-
+## Potential future work
+- [ ] CRAN compliance (`devtools::check()` with zero NOTEs)
+- [ ] Additional strategies (trailing stop, MA crossover)
+- [ ] Multi-asset portfolio support

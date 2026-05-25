@@ -2,11 +2,11 @@
 % Please edit documentation in R/strategy.R
 \name{Strategy}
 \alias{Strategy}
-\title{Strategy Base Class}
+\title{Strategy Base R6 Class}
 \description{
-Strategy Base Class
-
-Strategy Base Class
+Abstract base class for all trading strategies. Subclasses must implement
+\code{generate_signals()}, which returns an integer vector aligned with the
+input data rows (1 = buy, 0 = hold).
 }
 \section{Methods}{
 \subsection{Public methods}{
@@ -19,7 +19,7 @@ Strategy Base Class
 \if{html}{\out{<a id="method-Strategy-generate_signals"></a>}}
 \if{latex}{\out{\hypertarget{method-Strategy-generate_signals}{}}}
 \subsection{Method \code{generate_signals()}}{
-Generate trading signals
+Generate trading signals from market data.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Strategy$generate_signals(data)}\if{html}{\out{</div>}}
 }
@@ -27,12 +27,13 @@ Generate trading signals
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{data}}{Market data frame}
+\item{\code{data}}{A data.frame with at least a \code{Close} column (and
+\code{Date} for date-aware strategies).}
 }
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-An integer vector of signals (1: Buy, 0: Hold, -1: Sell)
+An integer vector of length \code{nrow(data)}: 1 = buy, 0 = hold.
 }
 }
 \if{html}{\out{<hr>}}

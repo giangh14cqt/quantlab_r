@@ -1,41 +1,71 @@
-#' Load Market Data from CSV
+# Polish -> English column name mapping for raw Stooq exports
+.STOOQ_COL_MAP <- c(
+  "Data"       = "Date",
+  "Otwarcie"   = "Open",
+  "Najwyzszy"  = "High",
+  "Najnizszy"  = "Low",
+  "Zamkniecie" = "Close",
+  "Wolumen"    = "Volume"
+)
+
+#' Load Market Data from a CSV File (Stooq Format)
 #'
-#' @param path Path to the CSV file (Stooq format)
-#' @return A data.frame with cleaned market data
+#' Reads a CSV in Stooq format, auto-detects Polish column headers and maps
+#' them to English, coerces types, and validates data integrity with defensive
+#' programming checks throughout.
+#'
+#' @param path Character. Path to a local CSV file.
+#' @return A \code{data.frame} with columns \code{Date}, \code{Open},
+#'   \code{High}, \code{Low}, \code{Close}, \code{Volume}, sorted ascending
+#'   by date.
 #' @export
 load_market_data <- function(path) {
+  if (!is.character(path) || length(path) != 1L) {
+    stop("'path' must be a single character string.")
+  }
   if (!file.exists(path)) {
     stop("File not found: ", path)
   }
-  
-  # Read CSV
+
   data <- utils::read.csv(path, stringsAsFactors = FALSE)
-  
-  # Required columns
-  req_cols <- c("Date", "Open", "High", "Low", "Close", "Volume")
-  if (!all(req_cols %in% colnames(data))) {
-    stop("Missing required columns: ", paste(setdiff(req_cols, colnames(data)), collapse = ", "))
+
+  # Normalize column names and auto-map Polish headers
+  names(data) <- trimws(names(data))
+  polish_hits <- names(data) %in% names(.STOOQ_COL_MAP)
+  if (any(polish_hits)) {
+    names(data)[polish_hits] <- .STOOQ_COL_MAP[names(data)[polish_hits]]
+    message("Mapped ", sum(polish_hits), " Polish column name(s) to English.")
   }
-  
-  # Convert Date
+
+  req_cols <- c("Date", "Open", "High", "Low", "Close", "Volume")
+  missing_cols <- setdiff(req_cols, names(data))
+  if (length(missing_cols) > 0) {
+    stop("Missing required columns: ", paste(missing_cols, collapse = ", "))
+  }
+
   data$Date <- as.Date(data$Date)
-  
-  # Ensure numeric columns
+  if (anyNA(data$Date)) {
+    stop("Date column contains values that could not be parsed as dates.")
+  }
+
   num_cols <- c("Open", "High", "Low", "Close", "Volume")
   for (col in num_cols) {
-    data[[col]] <- as.numeric(data[[col]])
+    data[[col]] <- suppressWarnings(as.numeric(data[[col]]))
   }
-  
-  # Check for NAs after conversion
-  if (any(is.na(data))) {
-    warning("Dataset contains NA values after conversion. These may cause issues in simulation.")
+
+  if (anyNA(data[, num_cols])) {
+    warning("Dataset contains NA values in numeric columns after conversion. ",
+            "These rows may affect simulation accuracy.")
   }
-  
-  # Sort by Date
+
+  # Enforce ascending chronological order
   data <- data[order(data$Date), ]
-  
-  # Check for date continuity (gaps > 7 days might indicate missing data, though weekends/holidays are expected)
-  # For now, we just ensure it's sorted.
-  
-  return(data)
+
+  # Sanity check: High must be >= Low
+  invalid_hl <- !is.na(data$High) & !is.na(data$Low) & (data$High < data$Low)
+  if (any(invalid_hl)) {
+    warning(sum(invalid_hl), " row(s) have High < Low and may be corrupted.")
+  }
+
+  data
 }

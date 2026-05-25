@@ -1,26 +1,32 @@
 Package: quantlab
-Title: High-Speed Strategy Tester
+Title: High-Speed Strategy Backtester
 Version: 0.1.0
-Authors@R: c(person("Truong Giang", "Do", email = "giangh14cqt@gmail.com", role = c("aut", "cre")), person("Jan", "Melan", role = "aut"), person("Sebastian", "Chmielewski", role = "aut"))
-Author: Truong Giang Do, Jan Melan, Sebastian Chmielewski
-Maintainer: Truong Giang Do <giangh14cqt@gmail.com>
-Description: A high-speed backtesting framework for R, utilizing R6 for state 
-    management and Rcpp for performance-critical path-dependent simulations. 
-    It provides a modular structure for testing simple trading strategies on 
-    historical market data, specifically optimized for Polish market assets.
+Authors@R: c(
+    person("Truong Giang", "Do",      email = "giangh14cqt@gmail.com", role = c("aut", "cre")),
+    person("Jan",          "Melan",                                     role = "aut"),
+    person("Sebastian",    "Chmielewski",                               role = "aut"))
+Description: A high-speed backtesting framework combining R6 classes for
+    stateful portfolio simulation, a formally validated S4 configuration
+    layer, vectorized R signal generation, and a compiled Rcpp engine for
+    path-dependent daily loops. Ships with a Shiny dashboard for interactive
+    strategy exploration. Designed for Polish market data (stooq.pl format).
 License: MIT + file LICENSE
 Encoding: UTF-8
-LazyData: true
+LazyData: false
 RoxygenNote: 7.3.3
-Imports: 
+Imports:
+    methods,
     R6,
-    Rcpp (>= 1.0.0)
-LinkingTo: 
+    Rcpp (>= 1.0.0),
+    graphics,
+    utils
+LinkingTo:
     Rcpp
-Suggests: 
+Suggests:
     testthat (>= 3.0.0),
     shiny,
     bslib,
+    bsicons,
     plotly,
     DT
 Config/testthat/edition: 3

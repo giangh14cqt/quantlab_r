@@ -2,11 +2,12 @@
 % Please edit documentation in R/strategy.R
 \name{StrategyATH}
 \alias{StrategyATH}
-\title{All-Time High Strategy}
+\title{All-Time High (ATH / FOMO) Strategy}
 \description{
-All-Time High Strategy
-
-All-Time High Strategy
+Generates a buy signal on days where the closing price equals or exceeds the
+rolling maximum of the previous \code{n} trading days.  Simulates the "FOMO
+investor" who chases breakouts.  Signal generation is fully vectorized using
+\code{embed()} — no explicit loops.
 }
 \section{Super class}{
 \code{\link[quantlab:Strategy]{quantlab::Strategy}} -> \code{StrategyATH}
@@ -14,7 +15,7 @@ All-Time High Strategy
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}
 \describe{
-\item{\code{n}}{Rolling window for ATH calculation}
+\item{\code{n}}{Rolling lookback window in trading days.}
 }
 \if{html}{\out{</div>}}
 }
@@ -30,15 +31,15 @@ All-Time High Strategy
 \if{html}{\out{<a id="method-StrategyATH-new"></a>}}
 \if{latex}{\out{\hypertarget{method-StrategyATH-new}{}}}
 \subsection{Method \code{new()}}{
-Initialize ATH Strategy
+Initialize ATH Strategy.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{StrategyATH$new(n = 252)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{StrategyATH$new(n = 252L)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{n}}{Rolling window size}
+\item{\code{n}}{Positive integer lookback window (default 252 = ~1 trading year).}
 }
 \if{html}{\out{</div>}}
 }
@@ -47,7 +48,7 @@ Initialize ATH Strategy
 \if{html}{\out{<a id="method-StrategyATH-generate_signals"></a>}}
 \if{latex}{\out{\hypertarget{method-StrategyATH-generate_signals}{}}}
 \subsection{Method \code{generate_signals()}}{
-Generate signals
+Generate vectorized ATH signals.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{StrategyATH$generate_signals(data)}\if{html}{\out{</div>}}
 }
@@ -55,7 +56,7 @@ Generate signals
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{data}}{Market data frame}
+\item{\code{data}}{data.frame with a \code{Close} column.}
 }
 \if{html}{\out{</div>}}
 }
