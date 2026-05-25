@@ -11,8 +11,8 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // run_simulation_cpp
-List run_simulation_cpp(NumericVector close_prices, NumericVector high_prices, NumericVector low_prices, IntegerVector signals, double initial_cash, double stop_loss_pct);
-RcppExport SEXP _quantlab_run_simulation_cpp(SEXP close_pricesSEXP, SEXP high_pricesSEXP, SEXP low_pricesSEXP, SEXP signalsSEXP, SEXP initial_cashSEXP, SEXP stop_loss_pctSEXP) {
+List run_simulation_cpp(NumericVector close_prices, NumericVector high_prices, NumericVector low_prices, IntegerVector signals, double initial_cash, double stop_loss_pct, double invest_amount);
+RcppExport SEXP _quantlab_run_simulation_cpp(SEXP close_pricesSEXP, SEXP high_pricesSEXP, SEXP low_pricesSEXP, SEXP signalsSEXP, SEXP initial_cashSEXP, SEXP stop_loss_pctSEXP, SEXP invest_amountSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -22,13 +22,14 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< IntegerVector >::type signals(signalsSEXP);
     Rcpp::traits::input_parameter< double >::type initial_cash(initial_cashSEXP);
     Rcpp::traits::input_parameter< double >::type stop_loss_pct(stop_loss_pctSEXP);
-    rcpp_result_gen = Rcpp::wrap(run_simulation_cpp(close_prices, high_prices, low_prices, signals, initial_cash, stop_loss_pct));
+    Rcpp::traits::input_parameter< double >::type invest_amount(invest_amountSEXP);
+    rcpp_result_gen = Rcpp::wrap(run_simulation_cpp(close_prices, high_prices, low_prices, signals, initial_cash, stop_loss_pct, invest_amount));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_quantlab_run_simulation_cpp", (DL_FUNC) &_quantlab_run_simulation_cpp, 6},
+    {"_quantlab_run_simulation_cpp", (DL_FUNC) &_quantlab_run_simulation_cpp, 7},
     {NULL, NULL, 0}
 };
 

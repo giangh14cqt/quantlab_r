@@ -2,16 +2,20 @@
 % Please edit documentation in R/data_loader.R
 \name{load_market_data}
 \alias{load_market_data}
-\title{Load Market Data from CSV}
+\title{Load Market Data from a CSV File (Stooq Format)}
 \usage{
 load_market_data(path)
 }
 \arguments{
-\item{path}{Path to the CSV file (Stooq format)}
+\item{path}{Character. Path to a local CSV file.}
 }
 \value{
-A data.frame with cleaned market data
+A \code{data.frame} with columns \code{Date}, \code{Open},
+  \code{High}, \code{Low}, \code{Close}, \code{Volume}, sorted ascending
+  by date.
 }
 \description{
-Load Market Data from CSV
+Reads a CSV in Stooq format, auto-detects Polish column headers and maps
+them to English, coerces types, and validates data integrity with defensive
+programming checks throughout.
 }

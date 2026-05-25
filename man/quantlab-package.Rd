@@ -4,9 +4,9 @@
 \name{quantlab-package}
 \alias{quantlab}
 \alias{quantlab-package}
-\title{quantlab: High-Speed Strategy Tester}
+\title{quantlab: High-Speed Strategy Backtester}
 \description{
-A high-speed backtesting framework for R, utilizing R6 for state management and Rcpp for performance-critical path-dependent simulations. It provides a modular structure for testing simple trading strategies on historical market data, specifically optimized for Polish market assets.
+A high-speed backtesting framework combining R6 classes for stateful portfolio simulation, a formally validated S4 configuration layer, vectorized R signal generation, and a compiled Rcpp engine for path-dependent daily loops. Ships with a Shiny dashboard for interactive strategy exploration. Designed for Polish market data (stooq.pl format).
 }
 \author{
 \strong{Maintainer}: Truong Giang Do \email{giangh14cqt@gmail.com}

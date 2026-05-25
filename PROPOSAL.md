@@ -1,4 +1,4 @@
-# QuantLab - High-Speed Strategy Tester
+# QuantLab — High-Speed Strategy Backtester
 
 ### Project Metadata
 * **Team Members:** Truong Giang Do (488388), Jan Melan (434200), Sebastian Chmielewski (486770)
@@ -8,38 +8,45 @@
 ---
 
 ## 1. Project Overview & Objective
-QuantLab is an R-based tool designed for testing simple trading strategies on historical market data. Rather than evaluating a single, fixed dataset or focusing on speculative financial forecasting and exploratory data analysis, this project provides a reusable, highly scalable backtesting framework. 
 
-The core deliverable is an installable R package that abstracts the complexities of data ingestion, stateful portfolio simulation, and programmatic trading rule evaluation. Users interact with the framework via an intuitive, web-based analytical dashboard.
+QuantLab is an installable R package for backtesting trading strategies on historical market data from `stooq.pl`. Rather than a one-shot analysis script, the project delivers a **reusable, parameter-driven simulation framework**: users configure strategy rules and capital parameters through a validated S4 configuration object, and the framework handles signal generation, path-dependent portfolio simulation, and performance reporting automatically.
 
-### Addressing Instructor Feedback: Interactive Strategy Design
-To avoid rigid or oversimplified portfolio tracking, QuantLab implements a **modular, parameter-driven rules engine** using historical data from `stooq.pl`. Instead of manually selecting entrance or exit timestamps on a chart, users configure dynamic market criteria. The platform natively evaluates the specific edge-case behaviors highlighted by our instructor:
-1. **The FOMO Investor (All-Time Highs):** Evaluates asset performance when buy rules are triggered exclusively on rolling $N$-day All-Time Highs (ATH).
-2. **The Doom Investor (Crash Timing):** Simulates capital performance if an investor enters the market at the worst possible chronological moments—specifically the day before historical macro-market crashes—to measure the efficacy of defensive stop-losses.
-3. **Standard Technical Parameters:** Classic indicator rules (e.g., Moving Average Crossovers) with user-adjustable lookback windows.
+The core deliverable is the R package plus an interactive Shiny dashboard that lets users compare two accumulation strategies — **Dollar-Cost Averaging (DCA)** and **Buy-the-Dip** — across multiple market indices and date ranges, with all performance metrics computed in real time.
+
+### Implemented Strategies
+
+1. **ATH — All-Time High (FOMO Investor):** Generates a buy signal whenever the closing price reaches a new rolling N-day maximum. Simulates momentum-chasing behaviour. Supports a static stop-loss checked against the daily low (intraday breach detection in C++).
+2. **DCA — Dollar-Cost Averaging:** Buys a fixed monetary amount every N trading days regardless of price. Represents systematic, emotion-free investing and serves as the benchmark in the dashboard.
+3. **Buy-the-Dip:** Buys a fixed amount the first day the price falls at least X% below its running all-time high. Simulates contrarian accumulation — saving cash and deploying it on weakness.
 
 ---
 
 ## 2. System Architecture & Core Components
-The system is divided into four cleanly decoupled layers mapped out inside our R package structure:
 
-* **Data Ingestion Layer:** Imports CSV configurations or live URL streams from `stooq.pl`. It runs programmatic data cleaning, detects Polish asset formatting, and asserts timeline continuity using strict defensive logic.
-* **Object-Oriented Domain Layer:** Uses R6 classes to handle stateful properties like current portfolio cash balances, open positions, active tracking of trailing stop boundaries, and execution order sheets.
-* **High-Speed Execution Core:** Implements critical iterative loops inside compiled C++ (via `Rcpp`). It processes row-by-row daily timelines across decades of market history instantly, checking if stop-losses or strategy target parameters were breached inside daily high/low variations.
-* **User Interface Layer:** A Shiny dashboard serving as the interactive control room. It features sidebar controls for picking tickers, tuning rule parameters, adjusting stop-losses, and triggering historical crash simulations.
+The system is divided into four cleanly decoupled layers:
+
+* **Data Ingestion Layer** (`R/data_loader.R`): Reads local CSV exports from `stooq.pl`, auto-detects and maps Polish column headers to English (`Data→Date`, `Zamkniecie→Close`, etc.), validates types and chronological order, and warns on corrupted High/Low rows.
+
+* **Object-Oriented Domain Layer**: Three sub-layers using three different R OOP systems, each chosen for its strengths:
+  * **S4** (`R/strategy_config.R`) — `StrategyConfig` class with formal slot-level validation. Rejects invalid parameters (out-of-range stop-loss, non-integer lookback, negative capital) before any simulation starts.
+  * **R6** (`R/strategy.R`) — `Strategy` base class with `StrategyATH`, `StrategyDCA`, `StrategyDip` subclasses. Signal generation is fully vectorized using `embed()`, `cummax()`, and `seq()` — no explicit R loops.
+  * **S3** (`R/metrics.R`) — `BacktestResult` class with `print`, `summary`, and `plot` methods for ergonomic result inspection.
+
+* **High-Speed Execution Core** (`src/backtest_engine.cpp`): The single compiled C++ loop in the project. Runs `run_simulation_cpp()` which processes each trading day sequentially — necessary because stop-loss checks (using daily low prices) and position state create path dependencies that cannot be vectorized. Supports two modes: all-in (deploy full cash on signal, stop-loss active) and accumulation (inject fixed amount per signal, no stop-loss, fractional shares).
+
+* **User Interface Layer** (`inst/shiny_app/app.R`): A `bslib`-based Shiny dashboard comparing DCA vs Buy-the-Dip across up to two market indices simultaneously. Features a wealth-factor chart (portfolio value / cumulative invested × 100) that normalizes across currencies, and a comparison table with injection-adjusted Sharpe ratio and personal return metrics.
 
 ---
 
 ## 3. Curricular Requirements Mapping
-QuantLab satisfies the advanced technical milestones required by the course architecture:
 
-| Course Technique | Structural Application inside QuantLab |
+| Course Technique | Implementation in QuantLab |
 | :--- | :--- |
-| **Advanced Functions & Defensive Programming** | Written with explicit input type-validation assertions, explicit handling of connection errors or missing data points, and auto-mapping Polish-encoded Stooq column headers into English standard structures. |
-| **Object-Oriented Programming (R6)** | Utilizes mutable R6 classes (`Portfolio` and `Strategy`) to encapsulate real-time portfolio weights, transaction record databases, and dynamic internal tracking logic. |
-| **C++ Integration (Rcpp)** | Offloads chronological backtesting loops to compiled C++ code, optimizing execution speeds when validating conditional intraday stop-losses across thousands of observation rows. |
-| **Vectorization & Performance Optimization** | Pre-calculates signals and complex rolling technical arrays across complete data matrices using vectorized R primitives before initializing the backtest engine loops. |
-| **Shiny Applications & Dashboards** | Implements modern reactive components showcasing comprehensive performance indicators (Sharpe Ratios, Max Drawdowns), transaction tables, and interactive equity curves. |
-| **R Package Structuring** | Fully assembled as an installable R package featuring compiled namespaces, formal documentation files, and standard internal source paths (`/R`, `/src`, `/inst`). |
-| **Testing Integration** | Validates math operations, safety exceptions, and tracking engines using explicit `testthat` automated unit test suites. |
-| **Advanced Bonus Tracks** | Implements an entire structural **Simulation Framework** over multi-asset **Time Series Financial Data**. |
+| **Advanced Functions & Defensive Programming** | `load_market_data()` validates file existence, column presence, date parseability, and High ≥ Low integrity. `strategy_config()` wraps S4 validity checks that fail fast with descriptive messages before any simulation runs. `run_backtest()` re-validates both data and config at the entry point. |
+| **Object-Oriented Programming (R6 + S4 + S3)** | Three OOP systems used deliberately: S4 for config validation (formal slots), R6 for extensible strategy classes (`StrategyATH`, `StrategyDCA`, `StrategyDip` all inherit from `Strategy`), S3 for idiomatic R output objects (`BacktestResult` with `print`/`summary`/`plot`). |
+| **C++ Integration (Rcpp)** | `run_simulation_cpp()` in `src/backtest_engine.cpp` — the only for-loop in the project. Handles fractional shares, intraday stop-loss checks via daily low prices, and the DCA fresh-money injection model. Returns four named numeric vectors. |
+| **Vectorization & Performance Optimization** | All signal generation is vectorized: ATH uses `embed()` + `do.call(pmax, ...)`, Dip uses `cummax()` + boolean differencing, DCA uses `seq()`. `compute_metrics()` uses `cummax()` for drawdown and vectorized return calculations. No R-level for-loops anywhere outside C++. |
+| **Shiny Applications & Dashboards** | `inst/shiny_app/app.R` — reactive dashboard with `eventReactive` triggering four parallel backtests, `plotly` wealth-factor chart, and `DT` comparison table with best-value cell highlighting. Tooltips explain Sharpe adjustment and wealth factor normalization. |
+| **R Package Structuring** | Installable package with `DESCRIPTION`, `NAMESPACE` (generated by roxygen2), compiled Rcpp routines registered via `R_registerRoutines`, and bundled data in `inst/extdata/`. |
+| **Testing Integration** | 30+ `testthat` unit tests covering `run_simulation_cpp` edge cases, S4 validity rejection, all three R6 strategy classes, `load_market_data` error handling, `compute_metrics` math, and full `run_backtest` integration tests against real WIG data. |
+| **Advanced Bonus** | Injection-adjusted Sharpe ratio: standard daily returns inflate SD on DCA purchase days (equity jumps by `invest_amount`). The adjustment `r_t = (ΔE_t − inject_t) / E_{t-1}` removes capital injections from the return series, producing a meaningful risk-adjusted metric for accumulation strategies. |

@@ -1,51 +1,81 @@
-# QuantLab - High-Speed Strategy Tester
+# QuantLab — High-Speed Strategy Backtester
 
-QuantLab is an R package designed for rapid backtesting of trading strategies on historical market data. It combines the flexibility of **R6 object-oriented programming** with the speed of **C++ (via Rcpp)**.
+QuantLab is an R package for backtesting trading strategies on historical market data. It combines **R6 object-oriented programming** for strategy definition, a formally validated **S4 configuration layer**, and a compiled **C++ simulation engine** (via Rcpp) for path-dependent daily loops.
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 - R (>= 4.0.0)
 - RStudio (recommended)
-- C++ Compiler (Build Tools)
+- C++ compiler (Rtools on Windows, Xcode CLI on macOS)
 
 ### Installation
-Clone this repository and open the `quantlab.Rproj` file in RStudio. Then run:
+
+Clone this repository and open `quantlab_r.Rproj` in RStudio, then run:
+
 ```r
 devtools::install()
 ```
 
-### Usage Example
+### Basic usage
+
 ```r
 library(quantlab)
 
-# 1. Load Data
-data <- load_market_data("wig_d.csv")
+# Load bundled WIG data
+path <- system.file("extdata", "wig_d.csv", package = "quantlab")
+data <- load_market_data(path)
 
-# 2. Setup Strategy (e.g., All-Time High with 252-day window)
-strategy <- StrategyATH$new(n = 252)
-signals <- strategy$generate_signals(data)
+# Configure a strategy
+cfg <- strategy_config("ATH", lookback = 252L, stop_loss = 0.10,
+                       initial_cash = 10000)
 
-# 3. Run High-Speed Simulation (5% stop-loss)
-results <- run_simulation_cpp(
-  data$Close, data$High, data$Low, signals, 
-  initial_cash = 10000, stop_loss_pct = 0.05
-)
-
-# 4. Analyze Results
-plot(results$equity, type = "l", main = "Equity Curve")
+# Run backtest
+res <- run_backtest(data, cfg)
+print(res)
+plot(res)
 ```
 
-## 🏗 Project Structure
-- `/R`: R6 classes for Portfolios and Strategies, and the Data Loader.
-- `/src`: C++ source code for the path-dependent simulation engine.
-- `/tests`: Unit tests for verifying logic and math.
-- `/man`: Package documentation (generated automatically).
+### DCA / Buy-the-Dip (fresh-money model)
 
-## 📅 Roadmap (Next Steps)
-Please see [TODO_NEXT.md](TODO_NEXT.md) for details on Phase 5 (Shiny Dashboard) and Phase 6 (CRAN compliance).
+```r
+# Dollar-cost averaging: invest 500 every 21 trading days
+cfg_dca <- strategy_config("DCA", invest_amount = 500, dca_interval = 21L)
+res_dca <- run_backtest(data, cfg_dca)
+summary(res_dca)
 
-## 👥 Authors
+# Buy-the-Dip: invest 1000 whenever price drops 10% below all-time high
+cfg_dip <- strategy_config("Dip", dip_pct = 0.10, invest_amount = 1000)
+res_dip <- run_backtest(data, cfg_dip)
+summary(res_dip)
+```
+
+### Interactive dashboard
+
+```r
+launch_app()
+```
+
+## Project Structure
+
+```
+/R          — Strategy R6 classes, S4 config, metrics, backtest runner
+/src        — C++ simulation engine (Rcpp)
+/inst       — Shiny dashboard (inst/shiny_app/) and bundled data (inst/extdata/)
+/tests      — testthat unit tests
+/man        — Auto-generated roxygen2 documentation
+```
+
+## Strategies
+
+| Strategy | Description |
+|:---------|:------------|
+| `ATH`    | Buy when price hits a new rolling N-day high (FOMO investor). Supports stop-loss. |
+| `DCA`    | Buy a fixed amount every N trading days regardless of price. |
+| `Dip`    | Buy when price drops ≥ X% below its running all-time high. |
+
+## Authors
+
 - Truong Giang Do
 - Jan Melan
 - Sebastian Chmielewski

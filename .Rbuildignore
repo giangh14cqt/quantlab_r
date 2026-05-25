@@ -1,3 +1,8 @@
+^\.claude$
+^CLAUDE\.md$
+^what_was_done\.md$
+^WHAT_WAS_DONE\.md$
+^QuantLab-Advanced-R-Programming\.docx$
 ^.*\.Rproj$
 ^\.Rproj\.user$
 ^IMPLEMENTATION_PLAN\.md$
