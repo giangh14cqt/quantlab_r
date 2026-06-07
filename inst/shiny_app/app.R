@@ -30,13 +30,13 @@ csv_files     <- list.files(DATA_DIR, pattern = "\\.csv$", full.names = FALSE)
 index_choices <- setNames(csv_files, vapply(csv_files, index_label, character(1)))
 
 # Position-based colour palette:
-#   slot 1 → DCA for Index 1   slot 2 → Dip for Index 1
-#   slot 3 → DCA for Index 2   slot 4 → Dip for Index 2
-PALETTE <- c("#1565C0", "#C62828", "#2E7D32", "#6A1B9A")
+#   slot 1 → DCA for Index 1   slot 2 → Dip for Index 1   slot 3 → ATH for Index 1
+#   slot 4 → DCA for Index 2   slot 5 → Dip for Index 2   slot 6 → ATH for Index 2
+PALETTE <- c("#1565C0", "#C62828", "#F57C00", "#2E7D32", "#6A1B9A", "#00796B")
 
 # ── UI ────────────────────────────────────────────────────────────────────────
 ui <- page_sidebar(
-  title = "QuantLab — DCA vs Buy-the-Dip",
+  title = "QuantLab — DCA vs Dip vs ATH Dashboard",
   theme = bs_theme(bootswatch = "flatly", version = 5),
 
   sidebar = sidebar(
@@ -77,6 +77,17 @@ ui <- page_sidebar(
     tags$small(class = "text-muted",
       "Deploy a larger lump sum when the market dips — simulates",
       "saving up cash and buying on weakness."),
+
+    hr(),
+    tags$small(tags$b("ATH — All-Time High / Breakout"), class = "text-muted d-block mb-1"),
+    numericInput("ath_cash", "Starting Capital (All-In)",
+                 value = 10000, min = 100, step = 1000),
+    sliderInput("ath_lookback", "Rolling window (lookback days)",
+                min = 5, max = 504, value = 252, step = 5),
+    sliderInput("ath_stop_loss", "Stop Loss (%)",
+                min = 0, max = 50, value = 10, step = 1),
+    tags$small(class = "text-muted",
+      "Buy breakouts at rolling highs with stop-loss protection."),
 
     hr(),
     actionButton("run_btn", "Run Comparison",
@@ -187,21 +198,31 @@ server <- function(input, output, session) {
       invest_amount = input$dip_amount,
       dip_pct       = input$dip_pct / 100
     )
+    cfg_ath <- quantlab::strategy_config(
+      "ATH",
+      initial_cash  = input$ath_cash,
+      lookback      = input$ath_lookback,
+      stop_loss     = input$ath_stop_loss / 100
+    )
 
-    n_runs <- if (use2) 4L else 2L
+    n_runs <- if (use2) 6L else 3L
     withProgress(message = paste0("Running ", n_runs, " backtests..."), value = 0, {
       res <- list()
 
       setProgress(0.1)
       res[[paste0("DCA — ", nm1)]] <- quantlab::run_backtest(data1, cfg_dca)
-      setProgress(0.4)
+      setProgress(0.3)
       res[[paste0("Dip — ", nm1)]] <- quantlab::run_backtest(data1, cfg_dip)
+      setProgress(0.5)
+      res[[paste0("ATH — ", nm1)]] <- quantlab::run_backtest(data1, cfg_ath)
 
       if (use2) {
         setProgress(0.6)
         res[[paste0("DCA — ", nm2)]] <- quantlab::run_backtest(data2, cfg_dca)
-        setProgress(0.9)
+        setProgress(0.8)
         res[[paste0("Dip — ", nm2)]] <- quantlab::run_backtest(data2, cfg_dip)
+        setProgress(0.9)
+        res[[paste0("ATH — ", nm2)]] <- quantlab::run_backtest(data2, cfg_ath)
       }
 
       setProgress(1.0)
